@@ -4,8 +4,9 @@ import pandas as pd
 import dash_helpers as dh
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
+from random import randint
 
-app = Dash(__name__)
+app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
 ##########################
 # Read in Data and Clean #
@@ -52,21 +53,21 @@ corpus_datatable = dash_table.DataTable(
 )
 
 app.layout = html.Div(children=[
-    html.H1(children='Happy 1 Year* of dating!'),
+    html.H1(children='Happy 1 Year* of dating!', style = {'text-align' : 'center'}),
 
-    html.Div(children='*(2 months and one week)'),
+    html.Div(children='*(2 months and one week)', style = {'text-align' : 'center'}),
     
     html.Div(children=[
         dcc.Graph(figure = day_ts_fig, id="graph1", style = {'display' : 'inline-block'}),
         dcc.Graph(figure = hour_ts_fig, id="graph2", style = {'display' : 'inline-block'}),
         html.Div([corpus_datatable]),
-        html.P(id = 'random-text'),
         dcc.Interval(
             id='interval-component',
             interval=10000, # in milliseconds
-            n_intervals=0
-        )
-    ], style = {'display' : 'flex'})
+            n_intervals=0)
+    ], style = {'display' : 'flex'}),
+    html.P(id = 'random-text', style={'background-image': 'url(/assets/txt_bubble.png)',
+                                      'width': '500px', 'height' : '350px', 'text-align' : 'center', 'vertical-align' : 'center'})
 ])
 
 
@@ -75,7 +76,9 @@ app.layout = html.Div(children=[
     Input('interval-component', 'n_intervals')
 )
 def sample_text(n):
-    text = df.sample(n = 5)
+    randi = randint(0, len(df))
+    
+    text = df.iloc[randi:(randi+5), : ]
     date = text.Day.iloc[0]
     final = [f'Date: {date}', html.Br()]
     

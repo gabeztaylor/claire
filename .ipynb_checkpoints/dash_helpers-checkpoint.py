@@ -22,6 +22,11 @@ def plot_by_day(df):
 def plot_by_hour(df):
     plot_df = df.groupby('Hour').apply(lambda x: len(x)).reset_index().rename(columns = {0 : 'txts'})
     fig = px.bar(plot_df, x='Hour', y='txts')
+    fig.update_layout(
+        xaxis = dict(
+            tickmode = 'linear'
+    )
+)
     return fig
 
 def word_cnt(x):
