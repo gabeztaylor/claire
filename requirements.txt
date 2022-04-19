@@ -1,0 +1,12 @@
+dash
+plotly
+pandas
+dash_bootstrap_components
+random
+re
+dash_daq
+numpy
+collections
+emoji
+regex
+nltk
