@@ -18,7 +18,6 @@ def plot_by_day(df, smooth = 1):
                 .rename(columns = {0: 'smoothed count'})
     
     fig = px.line(plot_df, x='Day', y='smoothed count', color = 'Type',
-                  title = 'Our Total Texts per Day',
                  color_discrete_sequence=['pink', 'blue'],
                  labels={"Type": "Lover"})
     # fig.add_trace(go.Bar(x = plot_df['Day'], y = plot_df['sum']))
@@ -31,7 +30,7 @@ def plot_by_hour(df):
                 .reset_index()\
                 .rename(columns = {0: 'count'})
     
-    fig = px.bar(plot_df, x='Hour', y='count', color = 'Type', title = 'Our Total Texts by Hour',
+    fig = px.bar(plot_df, x='Hour', y='count', color = 'Type',
                 color_discrete_sequence=['pink', 'blue'],
                 labels={"Type": "Lover"})
     fig.update_layout(
@@ -63,7 +62,6 @@ def text_length(df):
 
     tl_fig = px.bar(tl_plot_df, x="length", y="count",
              color="Type", barmode = 'group',
-             title = 'Number of Words per Text',
              color_discrete_sequence=['pink', 'blue'],
             labels={"Type": "Lover"})
     
@@ -73,7 +71,6 @@ def text_length(df):
     wd_plot_df = plot_df.groupby(['Day', 'Type']).apply(lambda x: sum(x.length)).reset_index().rename(columns = {0: 'count'})
     
     wd_fig = px.histogram(wd_plot_df, x="count", color="Type", marginal = 'box',
-                          title = 'Distribution of Words Texted per Day',
                          color_discrete_sequence=['pink', 'blue'],
                          labels={"Type": "Lover"})
     
@@ -100,7 +97,9 @@ def agg_f(x):
     return pd.Series(d).round().apply(lambda x: f'{int(x):,}')
 
 def get_stats(df):
-    return df.groupby('Type').apply(agg_f).transpose()
+    stat_df = df.groupby('Type').apply(agg_f).transpose().reset_index()
+    stat_df.columns = ['', 'Claire', 'Gabe']
+    return stat_df
 
 ##########
 # Emojis #
@@ -146,14 +145,14 @@ def emoji_cnt(df):
 #                            .append(gabe_emojis.sort_values(by = 'n', ascending = False).iloc[:10, :])
 
     plot_df = claire_emojis.merge(gabe_emojis, on = 'emoji', how = 'outer', suffixes = ('Claire', 'Gabe'))
-    plot_df = plot_df.iloc[:10, ]
+    plot_df = plot_df.iloc[:15, ]
     plot_df = plot_df.rename(columns = {'nClaire' : 'Claire', 'nGabe' : 'Gabe'})
     
-    emot_fig = px.bar(plot_df, x="emoji", y=['Claire', 'Gabe'], barmode = 'group',
-                title = 'Our Favorite Emojis', color_discrete_sequence=['pink', 'blue'],
+    emot_fig = px.bar(plot_df, x="emoji", y=['Claire', 'Gabe'], barmode = 'group', 
+                      color_discrete_sequence=['pink', 'blue'],
                 labels={"variable": "Lover"})
     
-    emot_fig.update_layout(font=dict(size=18))
+    emot_fig.update_xaxes(tickfont_size=26)
 
     
     
@@ -206,12 +205,13 @@ def ngram_cnt(df, n = 1, stops = []):
 #                            .append(gabe_ngram.sort_values(by = 'n', ascending = False).iloc[:10, :])
 
     plot_df = claire_ngram.merge(gabe_ngram, on = 'ngram', how = 'outer', suffixes = ('Claire', 'Gabe'))
-    plot_df = plot_df.iloc[:10, ]
+    plot_df = plot_df.iloc[:15, ]
     plot_df = plot_df.rename(columns = {'nClaire' : 'Claire', 'nGabe' : 'Gabe'})
     
-    ngram_fig = px.bar(plot_df, x="ngram", y=['Claire', 'Gabe'], barmode = 'group',
-                title = 'Our Favorite Words', color_discrete_sequence=['pink', 'blue'],
+    ngram_fig = px.bar(plot_df, x="ngram", y=['Claire', 'Gabe'], barmode = 'group', 
+                       color_discrete_sequence=['pink', 'blue'],
                 labels={"variable": "Lover"})
+    ngram_fig.update_xaxes(tickfont_size=18, tickangle = 45)
     
     return ngram_fig
     
