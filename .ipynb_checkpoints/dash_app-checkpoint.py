@@ -3,7 +3,7 @@ import plotly.express as px
 import pandas as pd
 import dash_helpers as dh
 import dash_bootstrap_components as dbc
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 from random import randint
 import re
 
@@ -29,7 +29,9 @@ df.Text = df.Text.apply(lambda x: re.sub('“.*?”', '', x) if not pd.isnull(x)
 day_ts_fig = dh.plot_by_day(df)
 hour_ts_fig = dh.plot_by_hour(df)
 word_tbl = dh.words_table(df)
-txt_dist = dh.text_length(df)
+txt_dist, wd_dist = dh.text_length(df)
+emots_fig, emots_df = dh.emoji_cnt(df)
+ngrams_fig = dh.ngram_cnt(df)
 #############################
 
 #############################
@@ -37,9 +39,6 @@ txt_dist = dh.text_length(df)
 #############################
 n_txts = len(df)
 wrd_hnt = dh.n_games(df)
-emots_fig, emots_df = dh.emoji_cnt(df)
-print(emots_df)
-
 
 #############################
 # Data Tables ###############
@@ -101,42 +100,76 @@ app.layout = html.Div(children=[
     html.Div(children='*(2 months and one week)', style = {'text-align' : 'center'}),
     
     html.Div(children=[
-        dcc.Graph(figure = day_ts_fig, id="graph1", style = {'display' : 'inline-block'}),
-        dcc.Graph(figure = hour_ts_fig, id="graph2", style = {'display' : 'inline-block'}),
-        dcc.Graph(figure = txt_dist, id="graph3", style = {'display' : 'inline-block'}),
-        dcc.Interval(
-            id='interval-component',
-            interval=30000, # in milliseconds
-            n_intervals=0)
+        dbc.Col([html.P("Choose number of smoothing days: "),
+                 dcc.Slider(min=1, max=365, step=1, value=1, id='smoothing-param'),
+                 html.P(id='smooth-text'),
+                 dcc.Graph(figure = day_ts_fig,id="txt-by-day", style = {'display' : 'inline-block', "margin-left": "15px"}),], width = 3),
+        dcc.Graph(figure = hour_ts_fig, id="txt-by-hour", style = {'display' : 'inline-block', }),
+        dcc.Graph(figure = txt_dist, id="txt-len-dist", style = {'display' : 'inline-block'}),
+        dcc.Interval(id='interval-component', interval=30000, n_intervals=0)
     ], style = {'display' : 'flex'}),
     
     html.Div(children=[
-    html.P(id = 'random-text', style={'background-image': 'url(/assets/txt_bubble.png)',
-                                      'width': '500px', 'height' : '350px', 'text-align' : 'center', 'vertical-align' : 'center'}),
-    html.Div([corpus_datatable]),
-    html.Div([emots_dt]),
-    dcc.Graph(figure = emots_fig, id="graph4", style = {'display' : 'inline-block'}),
+        # html.P(id = 'random-text', style={'width': '500px', 'height' : '350px', 'text-align' : 'left', 'vertical-align' : 'center'}),
+        # html.Div([corpus_datatable]),
+        dbc.Spinner([html.Div([
+            html.Div([html.P("Choose N:"), 
+                    dcc.Input(id='ngram', type='number', value = 1, min=1, max=5, step=1, debounce = True)
+                     ], style = {'display' : 'inline-block', "margin-left": "15px"}),
+            html.Div([html.P("Choose Stop Words:"),
+                    dcc.Input(id='stops', value = 'word hunt reversi 20 questions', debounce = True, placeholder = "seperate with spaces")
+                     ], style = {'display' : 'inline-block', "margin-left": "15px"}),
+            html.Div([dcc.Graph(figure = ngrams_fig, id="ngrams-fig", style = {'display' : 'inline-block', "margin-left": "15px"}),
+                    ])])
+                    ]),
+        # html.Div([emots_dt]),
+        dbc.Col([dcc.Graph(figure = emots_fig, id="emot-fig", style = {'display' : 'inline-block'})
+                ]),
+        dbc.Col([dcc.Graph(figure = wd_dist, id="wd-dist-fig", style = {'display' : 'inline-block'})
+                ])
     ], style = {'display' : 'flex'})
 ])
 
 
-@app.callback(
-    Output('random-text', 'children'),
-    Input('interval-component', 'n_intervals')
-)
-def sample_text(n):
-    randi = randint(0, len(df))
+# @app.callback(
+#     Output('random-text', 'children'),
+#     Input('interval-component', 'n_intervals')
+# )
+# def sample_text(n):
+#     randi = randint(0, len(df))
     
-    text = df.iloc[randi:(randi+10), : ]
-    date = text.Day.iloc[0]
-    final = [f'Date: {date}', html.Br()]
+#     text = df.iloc[randi:(randi+10), : ]
+#     date = text.Day.iloc[0]
+#     final = [f'Date: {date}', html.Br()]
     
-    for i in text.index:
-        txt = text.loc[i, 'Text']
-        sender = text.loc[i, 'Type']
-        final += [f"{sender}: {txt}", html.Br()]
+#     for i in text.index:
+#         txt = text.loc[i, 'Text']
+#         sender = text.loc[i, 'Type']
+#         final += [f"{sender}: {txt}", html.Br()]
         
-    return final
+#     return final
+
+
+@app.callback(
+    Output('txt-by-day', 'figure'),
+    Output('smooth-text', 'children'),
+    Input('smoothing-param', 'value')
+)
+def adjust_smoothing(s):
+    fig = dh.plot_by_day(df, s)
+    s_text = f'You have chosen: {s} days'
+    return fig, s_text
+
+@app.callback(
+    Output('ngrams-fig', 'figure'),
+    Input('ngram', 'value'),
+    Input('stops', 'value')
+)
+def choose_ngram(n, stops):
+    print(stops)
+    stop_words = stops.split()
+    fig = dh.ngram_cnt(df, n, stop_words)
+    return fig
 
 app.run_server(debug=True)
 
