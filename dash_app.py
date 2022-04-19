@@ -14,7 +14,7 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 # Read in Data and Clean #
 ##########################
 
-df = pd.read_csv('/Users/gabrieltaylor/Python/Claire/Messages - Claire Robinson.csv')
+df = pd.read_csv('Messages - Claire Robinson.csv')
 df['Message Date'] = df['Message Date'].apply(pd.to_datetime)
 df['Day'] = df['Message Date'].dt.date
 df['Time'] = df['Message Date'].dt.time
