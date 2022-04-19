@@ -39,10 +39,13 @@ ngrams_fig = dh.ngram_cnt(df)
 #############################
 n_txts = len(df)
 wrd_hnt = dh.n_games(df)
+qck_stats = dh.get_stats(df)
 
 #############################
 # Data Tables ###############
 #############################
+
+stats_table = dbc.Table.from_dataframe(qck_stats, striped=True, bordered=True, hover=True, index=True)
 
 corpus_datatable = dash_table.DataTable(
     id='wordtbl-table',
@@ -106,6 +109,7 @@ app.layout = html.Div(children=[
                  dcc.Graph(figure = day_ts_fig,id="txt-by-day", style = {'display' : 'inline-block', "margin-left": "15px"}),], width = 3),
         dcc.Graph(figure = hour_ts_fig, id="txt-by-hour", style = {'display' : 'inline-block', }),
         dcc.Graph(figure = txt_dist, id="txt-len-dist", style = {'display' : 'inline-block'}),
+        html.Div([stats_table]),
         dcc.Interval(id='interval-component', interval=30000, n_intervals=0)
     ], style = {'display' : 'flex'}),
     

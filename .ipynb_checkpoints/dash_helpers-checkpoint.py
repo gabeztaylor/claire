@@ -72,17 +72,35 @@ def text_length(df):
     ### Word per day distribution
     wd_plot_df = plot_df.groupby(['Day', 'Type']).apply(lambda x: sum(x.length)).reset_index().rename(columns = {0: 'count'})
     
-    wd_fig = px.histogram(wd_plot_df, x="count", color="Type",
+    wd_fig = px.histogram(wd_plot_df, x="count", color="Type", marginal = 'box',
                           title = 'Distribution of Words Texted per Day',
-                         color_discrete_sequence=['pink', 'blue'])
+                         color_discrete_sequence=['pink', 'blue'],
+                         labels={"Type": "Lover"})
     
     return tl_fig, wd_fig
 
+##########
+# Stats ##
+##########
 
 def n_games(df):
     return df.Text.fillna('').apply(lambda x: 'word hunt' in ' '.join([i.lower() for i in x.split()])).sum()
 
+def agg_f(x):
+    d = {}
+    txts = x.groupby('Day').apply(len)
+    words = x.Text.fillna('').apply(lambda x: x.split()).apply(len)
+    d['Avg Texts per Day'] = txts.mean()
+    d['Most Texts in a Day'] = txts.max()
+    d['Total Texts'] = txts.sum()
+    d['Avg Words per Text'] = words.mean()
+    d['Most Words in One Text'] = words.max()
+    d['Total Words'] = words.sum()
 
+    return pd.Series(d).round().apply(lambda x: f'{int(x):,}')
+
+def get_stats(df):
+    return df.groupby('Type').apply(agg_f).transpose()
 
 ##########
 # Emojis #
@@ -134,6 +152,9 @@ def emoji_cnt(df):
     emot_fig = px.bar(plot_df, x="emoji", y=['Claire', 'Gabe'], barmode = 'group',
                 title = 'Our Favorite Emojis', color_discrete_sequence=['pink', 'blue'],
                 labels={"variable": "Lover"})
+    
+    emot_fig.update_layout(font=dict(size=18))
+
     
     
     return emot_fig, emot_df
