@@ -193,5 +193,5 @@ def choose_ngram(n, stops):
     fig = dh.ngram_cnt(df, n, stop_words)
     return fig
 
-app.run_server(debug=True)
-
+#app.run_server(debug=True)
+app.run_server(host='0.0.0.0', port=8050)
