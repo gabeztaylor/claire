@@ -1,4 +1,5 @@
 from dash import Dash, html, dcc, dash_table
+import dash_auth
 import plotly.express as px
 import pandas as pd
 import dash_helpers as dh
@@ -9,15 +10,27 @@ import re
 import dash_daq as daq
 import os
 import base64
+import json
 
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
+
+# with open('/Users/gabrieltaylor/Python/Claire/pass_keys.json') as f:
+#     VALID_USERNAME_PASSWORD_PAIRS = json.load(f)
+
+with open('s3://claireandgabriel1year.com/pass_keys.json') as f:
+    VALID_USERNAME_PASSWORD_PAIRS = json.load(f)
+
+auth = dash_auth.BasicAuth(
+    app,
+    VALID_USERNAME_PASSWORD_PAIRS
+)
 
 ##########################
 # Read in Data and Clean #
 ##########################
 
-# df = pd.read_csv('../Claire/Messages - Claire Robinson.csv')
+# df = pd.read_csv('/Users/gabrieltaylor/Python/Claire/Messages - Claire Robinson.csv')
 df = pd.read_csv('s3://claireandgabriel1year.com/Messages - Claire Robinson.csv')
 df['Message Date'] = df['Message Date'].apply(pd.to_datetime)
 df['Day'] = df['Message Date'].dt.date
@@ -231,5 +244,5 @@ def choose_ngram(n, stops):
     fig = dh.ngram_cnt(df, n, stop_words)
     return fig
 
-app.run_server(debug=True)
-# app.run_server(host='0.0.0.0', port=8050)
+# app.run_server(debug=True)
+app.run_server(host='0.0.0.0', port=8050)
