@@ -11,15 +11,18 @@ import dash_daq as daq
 import os
 import base64
 import json
-
+import boto3
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
 # with open('/Users/gabrieltaylor/Python/Claire/pass_keys.json') as f:
 #     VALID_USERNAME_PASSWORD_PAIRS = json.load(f)
 
-with open('s3://claireandgabriel1year.com/pass_keys.json') as f:
-    VALID_USERNAME_PASSWORD_PAIRS = json.load(f)
+s3 = boto3.resource('s3')
+obj = s3.Object('claireandgabriel1year.com', 'pass_keys.json')
+content = obj.get()['Body'].read().decode('utf-8')
+VALID_USERNAME_PASSWORD_PAIRS = json.loads(content)
+
 
 auth = dash_auth.BasicAuth(
     app,
